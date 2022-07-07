@@ -4,3 +4,4 @@ tqdm
 numpy
 pandas
 opencv-python
+pyyaml
