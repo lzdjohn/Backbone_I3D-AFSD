@@ -1,20 +1,14 @@
 import random
+import torch.nn.functional as F
+import argparse
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-from AFSD.common.thumos_dataset import THUMOS_Dataset, get_video_info, \
-    load_video_data, detection_collate, get_video_anno
-from torch.utils.data import DataLoader
-from AFSD.thumos14.multisegment_loss import MultiSegmentLoss
-from AFSD.common.config import config
 import numpy as np
 import tqdm
 import json
 from AFSD.common import videotransforms
-from AFSD.common.thumos_dataset import  get_class_index_map
-from AFSD.thumos14.BDNet import BDNet
+from AFSD.common.thumos_dataset import get_video_info, get_class_index_map
 from AFSD.common.segment_utils import softnms_v2
-import argparse
 from AFSD.evaluation.eval_detection import ANETdetection
 import os
 import matplotlib.pyplot as plt
@@ -24,17 +18,6 @@ from AFSD.common.thumos_dataset import THUMOS_Dataset, get_video_info, \
 from torch.utils.data import DataLoader
 from AFSD.thumos14.BDNet import BDNet
 from AFSD.thumos14.multisegment_loss import MultiSegmentLoss
-from AFSD.common.config import config
-import torch
-import torch.nn as nn
-import os
-import numpy as np
-import tqdm
-import json
-from AFSD.common import videotransforms
-from AFSD.common.thumos_dataset import get_video_info, get_class_index_map
-from AFSD.thumos14.BDNet import BDNet
-from AFSD.common.segment_utils import softnms_v2
 from AFSD.common.config import config
 os.environ["CUDA_VISIBLE_DEVICES"] = "7, 6, 5, 4, 3, 2, 1, 0"
 
