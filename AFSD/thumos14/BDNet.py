@@ -19,7 +19,7 @@ feat_t = 256 // 4
 
 
 class I3D_BackBone(nn.Module):
-    def __init__(self, final_endpoint='Mixed_5c', name='inception_i3d', in_channels=3,
+    def  __init__(self, final_endpoint='Mixed_5c', name='inception_i3d', in_channels=1,
                  freeze_bn=freeze_bn, freeze_bn_affine=freeze_bn_affine):
         super(I3D_BackBone, self).__init__()
         self._model = InceptionI3d(final_endpoint=final_endpoint,
@@ -29,13 +29,14 @@ class I3D_BackBone(nn.Module):
         self._freeze_bn = freeze_bn
         self._freeze_bn_affine = freeze_bn_affine
 
-    def load_pretrained_weight(self, model_path='/home/lzdjohn/AFSD/AFSDtime2/models/thumos14/rgb_imagenet.pt'):
+    def load_pretrained_weight(self, model_path='models/thumos14/checkpoint-15.ckpt'):
         self._model.load_state_dict(torch.load(model_path), strict=False)
 
     def train(self, mode=True):
+    # def train(self, mode=False):
         super(I3D_BackBone, self).train(mode)
         if self._freeze_bn and mode:
-            # print('freeze all BatchNorm3d in I3D backbone.')
+            print('freeze all BatchNorm3d in I3D backbone.')
             for name, m in self._model.named_modules():
                 if isinstance(m, nn.BatchNorm3d):
                     # print('freeze {}.'.format(name))
@@ -254,7 +255,10 @@ class CoarsePyramid(nn.Module):
             self.priors.append(
                 torch.Tensor([[(c + 0.5) / t] for c in range(t)]).view(-1, 1)
             )
-            t = t // 2
+            if t % 2 != 0:
+                t = t // 2 + 1
+            else:
+                t = t // 2
 
     def forward(self, feat_dict, ssl=False):
         pyramid_feats = []
@@ -368,7 +372,7 @@ class CoarsePyramid(nn.Module):
 
 
 class BDNet(nn.Module):
-    def __init__(self, in_channels=3, backbone_model=None, training=True):
+    def __init__(self, in_channels=1, backbone_model=None, training=True):
         super(BDNet, self).__init__()
 
         self.coarse_pyramid_detection = CoarsePyramid([832, 1024])
@@ -407,6 +411,7 @@ class BDNet(nn.Module):
     def forward(self, x, proposals=None, ssl=False):
         # x should be [B, C, 256, 96, 96] for THUMOS14
         feat_dict = self.backbone(x)
+        # print(feat_dict.keys())
         if ssl:
             top_feat = self.coarse_pyramid_detection(feat_dict, ssl)
             decoded_segments = proposals[0].unsqueeze(0)
