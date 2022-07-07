@@ -9,4 +9,4 @@ I3D+AFSD AFSD原论文架构，只修改了数据输入格式。
 请将预训练模型（链接：https://pan.baidu.com/s/1S29VhZHazGOqy_YaBsMOOw?pwd=w88y 提取码：w88y）下载后在根目录解压。
 
 
-相对路径版本还未改好，运行前请修改/Backbone_I3D-AFSD-main/AFSD/configs/thumos14.yaml里的路径，运行./AFSD/thumos14/train.py文件
+运行前可以修改/Backbone_I3D-AFSD-main/AFSD/configs/thumos14.yaml里的参数，运行./AFSD/thumos14/all.py文件
