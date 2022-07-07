@@ -1,0 +1,42 @@
+dataset:
+  num_classes: 8
+  training:
+    video_mp4_path: ./datasets/thumos14/validation/
+    video_info_path: /home/lzdjohn/AFSD/AFSDtime2/thumos_annotations/val_video_info.csv
+    video_anno_path: /home/lzdjohn/AFSD/AFSDtime2/thumos_annotations/val_Annotation_ours.csv
+    video_data_path: /home/lzdjohn/AFSD/AFSDtime2/datasets/thumos14/validation_npy/
+    clip_length: 256
+    clip_stride: 100
+    crop_size: 30
+  testing:
+    video_mp4_path: ./datasets/thumos14/test/
+    video_info_path: /home/lzdjohn/AFSD/AFSDtime2/thumos_annotations/test_video_info.csv
+    video_anno_path: /home/lzdjohn/AFSD/AFSDtime2/thumos_annotations/test_Annotation_ours.csv
+    video_data_path: /home/lzdjohn/AFSD/AFSDtime2/datasets/thumos14/test_npy/
+    clip_length: 256
+    clip_stride: 100
+    crop_size: 30
+
+model:
+  in_channels: 1
+  freeze_bn: True
+  freeze_bn_affine: True
+  backbone_model: /home/lzdjohn/AFSD/AFSDtime2/models/thumos14/checkpoint-15.ckpt
+
+training:
+  batch_size: 8
+  learning_rate: 1e-5
+  weight_decay: 1e-3
+  max_epoch: 100
+  focal_loss: true
+  checkpoint_path: ./models/thumos14/
+  random_seed: 2020
+
+testing:
+  conf_thresh: 0.01
+  top_k: 5000
+  nms_thresh: 0.9
+  nms_sigma: 0.5
+  checkpoint_path: ./models/thumos14/checkpoint-15.ckpt
+  output_path: ./output
+  output_json: detection_results.json
