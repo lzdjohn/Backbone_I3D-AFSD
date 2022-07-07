@@ -5,7 +5,7 @@ import yaml
 def get_config():
     parser = argparse.ArgumentParser()
     parser.add_argument('config_file', type=str,
-                        default='/home/lzdjohn/AFSD/AFSDtime2/configs/thumos14.yaml', nargs='?')
+                        default='../../configs/thumos14.yaml', nargs='?')
 
     parser.add_argument('--batch_size', type=int)
     parser.add_argument('--learning_rate', type=float)
@@ -22,7 +22,8 @@ def get_config():
 
     parser.add_argument('--lw', type=float, default=10.0)
     parser.add_argument('--cw', type=float, default=1)
-    parser.add_argument('--ssl', type=float, default=0.1)
+    # parser.add_argument('--ssl', type=float, default=0.1)
+    parser.add_argument('--ssl', type=float, default=0)
     parser.add_argument('--piou', type=float, default=0.5)
     parser.add_argument('--resume', type=int, default=0)
     parser.add_argument('--ngpu', type=int, default=1)
