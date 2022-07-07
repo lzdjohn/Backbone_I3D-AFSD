@@ -2,6 +2,10 @@
 ## 简介
 I3D+AFSD AFSD原论文架构，只修改了数据输入格式。
 
+## 使用
+按照requirements.txt配置环境
+在终端输入python setup.py install
+
 ## 注意事项
 
 请将数据集（链接：https://pan.baidu.com/s/10uSTEQQmwOBhA2HXa-Jcuw?pwd=jdsp 提取码：jdsp）下载后在根目录解压。
