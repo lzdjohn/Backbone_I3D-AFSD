@@ -1,18 +1,18 @@
 dataset:
   num_classes: 8
   training:
-    video_mp4_path: ./datasets/thumos14/validation/
-    video_info_path: /home/lzdjohn/AFSD/AFSDtime/thumos_annotations/val_video_info.csv
-    video_anno_path: /home/lzdjohn/AFSD/AFSDtime/thumos_annotations/val_Annotation_ours.csv
-    video_data_path: /home/lzdjohn/AFSD/AFSDtime/datasets/thumos14/validation_npy/
+    video_mp4_path: ../../datasets/thumos14/validation/
+    video_info_path: ../../thumos_annotations/val_video_info.csv
+    video_anno_path: ../../thumos_annotations/val_Annotation_ours.csv
+    video_data_path: ../../datasets/thumos14/validation_npy/
     clip_length: 256
     clip_stride: 100
     crop_size: 30
   testing:
-    video_mp4_path: ./datasets/thumos14/test/
-    video_info_path: /home/lzdjohn/AFSD/AFSDtime/thumos_annotations/test_video_info.csv
-    video_anno_path: /home/lzdjohn/AFSD/AFSDtime/thumos_annotations/test_Annotation_ours.csv
-    video_data_path: /home/lzdjohn/AFSD/AFSDtime/datasets/thumos14/test_npy/
+    video_mp4_path: ../../datasets/thumos14/test/
+    video_info_path: ../../thumos_annotations/test_video_info.csv
+    video_anno_path: ../../thumos_annotations/test_Annotation_ours.csv
+    video_data_path: ../../datasets/thumos14/test_npy/
     clip_length: 256
     clip_stride: 100
     crop_size: 30
@@ -21,7 +21,7 @@ model:
   in_channels: 1
   freeze_bn: false
   freeze_bn_affine: false
-  backbone_model: /home/lzdjohn/AFSD/AFSDtime/models/thumos14/checkpoint-15.ckpt
+  backbone_model: ../../models/thumos14/checkpoint-15.ckpt
 
 training:
   batch_size: 2
