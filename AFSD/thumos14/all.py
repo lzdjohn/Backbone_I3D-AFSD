@@ -136,7 +136,6 @@ def calc_bce_loss(start, end, scores):
 def forward_one_epoch(net, clips, targets, scores=None, training=True, ssl=False):
     clips = clips.cuda()
     targets = [t.cuda() for t in targets]
-    # print(ssl)
     if training:
         if ssl:
             # output_dict = net.module(clips, proposals=targets, ssl=ssl)
@@ -195,8 +194,6 @@ def run_one_epoch(epoch, net, optimizer, data_loader, epoch_step_num, training=T
             loss_l, loss_c, loss_prop_l, loss_prop_c, \
             loss_ct, loss_start, loss_end = forward_one_epoch(
                 net, clips, targets, scores, training=training, ssl=False)
-            # loss_l = torch.Tensor([0.]).cuda()
-            # loss_prop_l = torch.Tensor([0.]).cuda()
             loss_l = loss_l * config['training']['lw']
             loss_c = loss_c * config['training']['cw']
             loss_prop_l = loss_prop_l * config['training']['lw']
@@ -220,7 +217,6 @@ def run_one_epoch(epoch, net, optimizer, data_loader, epoch_step_num, training=T
                 optimizer.zero_grad()
                 cost.backward()
                 optimizer.step()
-            # print(type(loss_loc_val))
             loss_loc_val += loss_l.cpu().detach().numpy()
             loss_conf_val += loss_c.cpu().detach().numpy()
             loss_prop_l_val += loss_prop_l.cpu().detach().numpy()
@@ -250,16 +246,7 @@ def run_one_epoch(epoch, net, optimizer, data_loader, epoch_step_num, training=T
     writer.add_scalar('Total Loss', cost_val, epoch)
     writer.add_scalar('loc', loss_loc_val, epoch)
     writer.add_scalar('conf', loss_conf_val, epoch)
-    # writer.add_scalar('Test Acc', eval_acc/len(test_loader), epoch)
 
-    # plog = 'Epoch-{} {} Loss: Total - {:.5f}, loc - {:.5f}, conf - {:.5f}, ' \
-    #        'prop_loc - {:.5f}, prop_conf - {:.5f}, ' \
-    #        'IoU - {:.5f}, start - {:.5f}, end - {:.5f}'.format(
-    #     i, prefix, cost_val, loss_loc_val, loss_conf_val, loss_prop_l_val, loss_prop_c_val,
-    #     loss_ct_val, loss_start_val, loss_end_val
-    # )
-    # plog = plog + ', Triplet - {:.5f}'.format(loss_trip_val)
-    # print(plog)
 
 
 if __name__ == '__main__':
@@ -287,9 +274,6 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(net.parameters(),
                                  lr=learning_rate,
                                  weight_decay=weight_decay)
-    # optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, net.parameters()),
-    #                              lr=learning_rate,
-    #                              weight_decay=weight_decay)
     """
     Setup loss
     """
@@ -321,7 +305,9 @@ if __name__ == '__main__':
         run_one_epoch(i, net, optimizer, train_data_loader, len(train_dataset) // batch_size)
 
 
-
+    """
+    Start testing
+    """
     num_classes = config['dataset']['num_classes']
     conf_thresh = config['testing']['conf_thresh']
     top_k = config['testing']['top_k']
@@ -341,28 +327,18 @@ if __name__ == '__main__':
     for i in range(1, max_epoch+1):
         print(i)
         checkpoint_path = "./models/thumos14/checkpoint-"+str(i)+".ckpt"
-        json_name = "thumos14/output/"+str(i)+".json"
+        json_name = str(i)+".json"
         video_infos = get_video_info(config['dataset']['testing']['video_info_path'])
         originidx_to_idx, idx_to_class = get_class_index_map()
-
         npy_data_path = config['dataset']['testing']['video_data_path']
-        if fusion:
-            rgb_net = BDNet(in_channels=3, training=False)
-            flow_net = BDNet(in_channels=2, training=False)
-            rgb_net.load_state_dict(torch.load(rgb_checkpoint_path))
-            flow_net.load_state_dict(torch.load(flow_checkpoint_path))
-            rgb_net.eval().cuda()
-            flow_net.eval().cuda()
-            net = rgb_net
-            npy_data_path = rgb_data_path
-        else:
-            net = BDNet(in_channels=config['model']['in_channels'],
-                        backbone_model=config['model']['backbone_model'],
-                        training=True)
-            net = nn.DataParallel(net, device_ids=[0, 1]).cuda()
-            # net = net.cuda()
-            net.load_state_dict(torch.load(checkpoint_path))
-            net.eval().cuda()
+
+        net = BDNet(in_channels=config['model']['in_channels'],
+                    backbone_model=config['model']['backbone_model'],
+                    training=True)
+        net = nn.DataParallel(net, device_ids=[0, 1]).cuda()
+        # net = net.cuda()
+        net.load_state_dict(torch.load(checkpoint_path))
+        net.eval().cuda()
 
         if softmax_func:
             score_func = nn.Softmax(dim=-1)
@@ -387,13 +363,6 @@ if __name__ == '__main__':
             data = torch.from_numpy(data).float().unsqueeze(2)  # 1*8500*1*30
             data = data.view(1, 340, 25, 30)
 
-
-            if fusion:
-                flow_data = np.load(os.path.join(flow_data_path, video_name + '.npy'))
-                flow_data = np.transpose(flow_data, [3, 0, 1, 2])
-                flow_data = centor_crop(flow_data)
-                flow_data = torch.from_numpy(flow_data)
-
             output = []
             for cl in range(num_classes):
                 output.append([])
@@ -404,61 +373,22 @@ if __name__ == '__main__':
                 clip = data[:, offset: offset + clip_length]
                 clip = clip.float()
                 clip = (clip / 255.0) * 2.0 - 1.0
-                if fusion:
-                    flow_clip = flow_data[:, offset: offset + clip_length]
-                    flow_clip = flow_clip.float()
-                    flow_clip = (flow_clip / 255.0) * 2.0 - 1.0
-                # clip = torch.from_numpy(clip).float()
                 if clip.size(1) < clip_length:
                     tmp = torch.zeros([clip.size(0), clip_length - clip.size(1),
                                        96, 96]).float()
                     clip = torch.cat([clip, tmp], dim=1)
                 clip = clip.unsqueeze(0).cuda()
-                if fusion:
-                    if flow_clip.size(1) < clip_length:
-                        tmp = torch.zeros([flow_clip.size(0), clip_length - flow_clip.size(1),
-                                           96, 96]).float()
-                        flow_clip = torch.cat([flow_clip, tmp], dim=1)
-                    flow_clip = flow_clip.unsqueeze(0).cuda()
-
                 with torch.no_grad():
                     output_dict = net(clip)
-                    if fusion:
-                        flow_output_dict = flow_net(flow_clip)
 
                 loc, conf, priors = output_dict['loc'], output_dict['conf'], output_dict['priors'][0]
                 prop_loc, prop_conf = output_dict['prop_loc'], output_dict['prop_conf']
                 center = output_dict['center']
-                if fusion:
-                    rgb_conf = conf[0]
-                    rgb_loc = loc[0]
-                    rgb_prop_loc = prop_loc[0]
-                    rgb_prop_conf = prop_conf[0]
-                    rgb_center = center[0]
-
-                    loc, conf, priors = flow_output_dict['loc'], flow_output_dict['conf'], \
-                                        flow_output_dict['priors'][0]
-                    prop_loc, prop_conf = flow_output_dict['prop_loc'], flow_output_dict['prop_conf']
-                    center = flow_output_dict['center']
-
-                    flow_conf = conf[0]
-                    flow_loc = loc[0]
-                    flow_prop_loc = prop_loc[0]
-                    flow_prop_conf = prop_conf[0]
-                    flow_center = center[0]
-
-                    loc = (rgb_loc + flow_loc) / 2.0
-                    prop_loc = (rgb_prop_loc + flow_prop_loc) / 2.0
-                    conf = (rgb_conf + flow_conf) / 2.0
-                    prop_conf = (rgb_prop_conf + flow_prop_conf) / 2.0
-                    center = (rgb_center + flow_center) / 2.0
-
-                else:
-                    loc = loc[0]
-                    conf = conf[0]
-                    prop_loc = prop_loc[0]
-                    prop_conf = prop_conf[0]
-                    center = center[0]
+                loc = loc[0]
+                conf = conf[0]
+                prop_loc = prop_loc[0]
+                prop_conf = prop_conf[0]
+                center = center[0]
 
                 pre_loc_w = loc[:, :1] + loc[:, 1:]
                 loc = 0.5 * pre_loc_w * prop_loc + loc
@@ -526,6 +456,10 @@ if __name__ == '__main__':
         with open(os.path.join(output_path, json_name), "w") as out:
             json.dump(output_dict, out)
     writer.close()
+
+    """
+    Start evaluating
+    """
     writer = SummaryWriter("runs/eval")
     parser = argparse.ArgumentParser()
     args = parser.parse_args()
@@ -536,7 +470,7 @@ if __name__ == '__main__':
     y = []
     for i in range(1, max_epoch + 1):
         gt_json = '../../thumos_annotations/thumos_gt.json'
-        output_json = 'thumos14/output/' + str(i) + ".json"
+        output_json = './output/' + str(i) + ".json"
         tious = [0.3, 0.4, 0.5, 0.6, 0.7]
         anet_detection = ANETdetection(
             ground_truth_filename=gt_json,
