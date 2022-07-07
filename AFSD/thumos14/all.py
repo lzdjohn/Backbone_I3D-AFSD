@@ -36,15 +36,6 @@ if not os.path.exists(train_state_path):
 
 resume = config['training']['resume']
 
-# getting path for fusion
-rgb_data_path = config['testing'].get('rgb_data_path',
-                                      '../../datasets/thumos14/test_npy/')
-flow_data_path = config['testing'].get('flow_data_path',
-                                       '../../datasets/thumos14/test_flow_npy/')
-rgb_checkpoint_path = config['testing'].get('rgb_checkpoint_path',
-                                            '../../models/thumos14/checkpoint-15.ckpt')
-flow_checkpoint_path = config['testing'].get('flow_checkpoint_path',
-                                             '../../models/thumos14_flow/checkpoint-16.ckpt')
 
 def print_training_info():
     print('batch size: ', batch_size)
