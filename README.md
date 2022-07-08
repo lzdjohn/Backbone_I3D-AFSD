@@ -4,7 +4,7 @@ I3D+AFSD AFSD原论文架构，只修改了数据输入格式。
 
 ## 使用
 按照requirements.txt配置环境
-在终端输入python setup.py install
+在项目根目录下打开终端输入python setup.py install
 
 ## 注意事项
 
